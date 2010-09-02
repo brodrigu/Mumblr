@@ -1,0 +1,12 @@
+RewriteEngine on
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [NC,L]
+RewriteRule ^.*$ index.php [NC,L]
+
+# php config
+#php_value session.auto_start 0
+#php_value session.use_cookies 0
+#php_value session.use_only_cookies 0
