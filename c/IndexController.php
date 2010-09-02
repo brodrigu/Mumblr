@@ -31,14 +31,14 @@ class IndexController extends Zend_Controller_Action
 
     public function indexAction() 
     {
-        $posts = Zebu_Post::findAll();
+        //$posts = Zebu_Post::findAll();
         
         //$posts[0]->title = "Nantucket Man";
         //$posts[0]->save();
         
         
-        $posts = Zebu_Post::findAll();
-        $this->view->posts = $posts;
+        //$posts = Zebu_Post::findAll();
+        //$this->view->posts = $posts;
     }
 
 }

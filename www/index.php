@@ -1,74 +1,44 @@
 <?php
 
+// Define path to application directory
+defined('APPLICATION_PATH')
+    || define('APPLICATION_PATH',
+        realpath(dirname(__FILE__) . '/../'));
+              
+// Determine potential env:
+$env = getenv('APPLICATION_ENVIRONMENT') ? getenv('APPLICATION_ENVIRONMENT') : 'dev';
+if ($env == 'qa' && file_exists(APPLICATION_PATH . '/ENV_DEMO')) {
+    $env = 'demo';
+}
 
-// www/index.php
-//
-// Step 1: APPLICATION_PATH is a constant pointing to our
-// application/subdirectory. We use this to add our "library" directory
-// to the include_path, so that PHP can find our Zend Framework classes.
+// Define application environment
+defined('APPLICATION_ENVIRONMENT')
+    || define('APPLICATION_ENVIRONMENT', $env);
 
+// clean up after ourselves
+unset($env);
 
-define('APPLICATION_PATH', realpath(dirname(__FILE__) . '/../'));
-
+// Set include path to include all necessary libs, ect
 set_include_path(
-    
-    // include models path
-    APPLICATION_PATH . '/m' . PATH_SEPARATOR .
+    implode(PATH_SEPARATOR, array(
+        APPLICATION_PATH . '/m',
+        APPLICATION_PATH . '/lib',
+        get_include_path()
+    ))
+);
 
-    // include library path
-    APPLICATION_PATH . '/lib' . PATH_SEPARATOR .
-
-    get_include_path()
-    );
-
-// autoloader
+/** Zend_Autoloader */
 require_once "Zend/Loader/Autoloader.php";
 global $autoloader;
 $autoloader = Zend_Loader_Autoloader::getInstance();
-
-// bootstrap
-try {
-  require '../conf/ApplicationBootstrap.php';
-  ApplicationBootstrap::strap();
-} catch (Exception $exception) {
-    echo '<html><body><center>'
-      . 'An exception occured while bootstrapping the application.';
-    if (defined('APPLICATION_ENVIRONMENT')
-        && APPLICATION_ENVIRONMENT != 'production'
-	) {
-      echo '<br /><br />' . $exception->getMessage() . '<br />'
-           . '<div align="left">Stack Trace:' 
-	. '<pre>' . $exception->getTraceAsString() . '</pre></div>';
-    }
-    echo '</center></body></html>';
-    error_log($exception);
-    exit(1);
-}
-
-
-
-$viewRenderer =
-    Zend_Controller_Action_HelperBroker::getStaticHelper('viewRenderer');
-$viewRenderer->setViewSuffix('tpl');
-
-
-//Step 4: DISPATCH:  Dispatch the request using the front controller.
-// The front controller is a singleton, and should be setup by now. We 
-// will grab an instance and call dispatch() on it, which dispatches the
-// current request.
-$frontController = Zend_Controller_Front::getInstance();
-
-
-// access plugin
-//require_once "Framework/Auth/AccessPlugin.php"; 
-//$frontController->registerPlugin(new Framework_Auth_AccessPlugin(), 1);
-
-
-// impersonation
-//global $conf;
-//$router = $frontController->getRouter();
-//$router->addConfig($conf, 'routes');
-
-
-// actual dispatch
-$frontController->dispatch();
+$autoloader->setFallbackAutoloader(true);
+try{
+// Create application, bootstrap, and run
+require_once "Zend/Application.php";
+$application = new Zend_Application( APPLICATION_ENVIRONMENT, APPLICATION_PATH.'/conf/application.ini');
+$application->bootstrap()
+            ->run();
+            }catch (Exception $e) {
+                print $e->getMessage();
+                exit();
+            }
